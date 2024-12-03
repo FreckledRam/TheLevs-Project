@@ -16,8 +16,7 @@ def search_song(title, artist, access_token):
     response = requests.get(search_url, headers=headers, params=data)
     return response.json()
 
-def scrape_lyrics(title,artist,access_token):
-    response = search_song(title,artist, access_token)
+def scrape_lyrics(response):
     url_list = []
     for song_urls in response["response"]["hits"]:
         url_list.append(song_urls["result"]["url"])
@@ -30,7 +29,8 @@ def scrape_lyrics(title,artist,access_token):
 
 def main():
     print("Code Running...")
-    scrape_lyrics("Lose Yourself", "Eminem", "2O5_mc8TLGMFJDuMwx1Qv-PrIiEQlEe2Ar2cwQJN6CLMTjn_5dYgB5A4tFSPkEAg")
+    song_json_resp = search_song("Lose Yourself", "Eminem", "2O5_mc8TLGMFJDuMwx1Qv-PrIiEQlEe2Ar2cwQJN6CLMTjn_5dYgB5A4tFSPkEAg")
+    scrape_lyrics(song_json_resp)
     
 
 if __name__ == "__main__":
