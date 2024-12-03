@@ -16,15 +16,22 @@ def search_song(title, artist, access_token):
     response = requests.get(search_url, headers=headers, params=data)
     return response.json()
 
-def scrape_lyrics(song_url):
-    page = requests.get(song_url)
+def scrape_lyrics(title,artist,access_token):
+    response = search_song(title,artist, access_token)
+    url_list = []
+    for song_urls in response["response"]["hits"]:
+        url_list.append(song_urls["result"]["url"])
+    final_url = url_list[0]
+    page = requests.get(final_url)
     html = BeautifulSoup(page.text, 'html.parser')
-    lyrics = html.find('div', class_='lyrics').get_text()
-    return lyrics
+    print(html)
+    #lyrics = html.find('div', class_='lyrics').get_text()
+    #return lyrics
 
 def main():
     print("Code Running...")
-    print(search_song("Lose Yourself", "Eminem", "2O5_mc8TLGMFJDuMwx1Qv-PrIiEQlEe2Ar2cwQJN6CLMTjn_5dYgB5A4tFSPkEAg"))
+    scrape_lyrics("Lose Yourself", "Eminem", "2O5_mc8TLGMFJDuMwx1Qv-PrIiEQlEe2Ar2cwQJN6CLMTjn_5dYgB5A4tFSPkEAg")
+    
 
 if __name__ == "__main__":
     main()
