@@ -31,6 +31,7 @@ def main():
     print("Code Running...")
     song_json_resp = search_song("Lose Yourself", "Eminem", "2O5_mc8TLGMFJDuMwx1Qv-PrIiEQlEe2Ar2cwQJN6CLMTjn_5dYgB5A4tFSPkEAg")
     scrape_lyrics(song_json_resp)
+    #Merp
     
 
 if __name__ == "__main__":
