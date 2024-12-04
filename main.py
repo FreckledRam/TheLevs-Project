@@ -7,56 +7,46 @@ import re
 
 
 #Profanity - Zack. Using @Genius.com
-#Client ID - QozXjR8XK7UsT-1NbCj0fv3TUqv4mXrM5eyxiuLzAtX0qMpl-wPY81HiwZnToM-i
-#Client access token - 2O5_mc8TLGMFJDuMwx1Qv-PrIiEQlEe2Ar2cwQJN6CLMTjn_5dYgB5A4tFSPkEAg
-def search_song(title, artist, access_token):
-    url = 'https://api.genius.com'
-    headers = {'Authorization': f'Bearer {access_token}'}
-    search_url = f'{url}/search'
-    data = {'q': f'{title} {artist}'}
-    response = requests.get(search_url, headers=headers, params=data)
-    return response.json()
+def name_to_lyrics(artist, song, profanity_list):
+    url = f"https://www.azlyrics.com/lyrics/{artist.lower().replace(" ", "-")}/{song.lower().replace(" ", "")}.html"
 
-def scrape_lyrics(response):
-    url_list = []
-    for song_urls in response["response"]["hits"]:
-        url_list.append(song_urls["result"]["url"])
-    final_url = url_list[0]
-    page = requests.get("https://web.archive.org/web/20241129124550/"+final_url)
-    html = BeautifulSoup(page.text, 'html.parser')
-    lyrics = html.findAll('span', class_='ReferentFragmentdesktop__Highlight-sc-110r0d9-1 jAzSMw')
-    cleaned_lyric_list = [entry.get_text() for entry in lyrics]
+    try:
+        response = requests.get(url)
+        soup = BeautifulSoup(response.text, 'html.parser')
 
-    '''
-    for lyric in cleaned_lyric_list:
-        print(lyric)
-    '''
+        lyrics_div = soup.find("b", string=f'"{song}"').find_next("div")
 
-    return cleaned_lyric_list
+        lyrics = lyrics_div.get_text().strip()
+        
+        words_in_lyrics = re.findall(r'\b\w+\b', lyrics.lower())  # Extract words, ignoring punctuation
 
-def count_bad_words(lyric_list, profane_words):
-    num_words = 0
-    # Normalize profane words for case-insensitive comparison
-    profane_words_set = set(word.lower() for word in profane_words)
-    for line in lyric_list:
-        # Split the line into words, normalize them, and count matches
-        words = line.lower().split()  # Convert to lowercase and split into words
-        for word in words:
-            # Remove punctuation from each word and check if it's profane
-            cleaned_word = word.strip(".,!?;:()\"'")
-            if cleaned_word in profane_words_set:
-                num_words += 1
-    return num_words
+        num_profane_words = 0
+        for word in words_in_lyrics:
+            for profane_word in profanity_list:
+                # Check if the word matches any profane word exactly
+                 if profane_word in word:
+                    num_profane_words += 1
+        return num_profane_words
+        '''
+        profane_words_found = [word for word in words_in_lyrics if word in profanity_list]
+
+        # Print the results
+        print (words_in_lyrics)
+        print("Number of profane words found:", len(profane_words_found))  
+        '''
+
+    except requests.exceptions.RequestException as e:
+        return f"An error occurred: {e}"
 
 
 def main():
-    print("Code Running...")
-    song_json_resp = search_song("Lose Yourself", "Eminem", "smlHU9ET3K7s2NNWxrbGIaXCMteaYs7IZ2jLL8mFJot0jE4X78jPaNlz_uDVeWFH")
-    #print(song_json_resp)
-    #print(scrape_lyrics(song_json_resp))
-    profane_words = ['damn', 'hell', 'crap', 'piss', 'ass', 'bastard', 'fuck', 'shit', 'dick', 'pussy']
-    scraped_lyrics = scrape_lyrics(song_json_resp)
-    print(count_bad_words(scraped_lyrics, profane_words))
+    song_name = "Lose Yourself"
+    artist = "Eminem"
 
+    print("Code Running...")
+    profanity = ['bitch', 'fuck', "fuckin'", "shit", "motherfuckin'", "ass", "pussy"]
+    print(artist+ " - " +song_name)
+    print ("Number of profane words: " +str((name_to_lyrics(artist, song_name, profanity))))
+    
 if __name__ == "__main__":
     main()
