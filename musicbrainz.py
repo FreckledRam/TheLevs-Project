@@ -1,7 +1,9 @@
 import sqlite3
 import requests
+import re
 import time
 from datetime import datetime
+from bs4 import BeautifulSoup
 
 def setup_database():
     conn = sqlite3.connect("songs.db")
@@ -62,7 +64,43 @@ def read_songs_from_file(file_path):
                 songs.append({"artist_name": artist_name, "song_title": song_title})
     return songs
 
+#Zack - AZLyrics.com / Profanity
+def name_to_lyrics(artist, song, profanity_list):
+    url = f"https://www.azlyrics.com/lyrics/{artist.lower().replace(" ", "-")}/{song.lower().replace(" ", "")}.html"
+
+    try:
+        response = requests.get(url)
+        soup = BeautifulSoup(response.text, 'html.parser')
+
+        lyrics_div = soup.find("b", string=f'"{song}"').find_next("div")
+
+        lyrics = lyrics_div.get_text().strip()
+        
+        words_in_lyrics = re.findall(r'\b\w+\b', lyrics.lower())
+
+        num_profane_words = 0
+        for word in words_in_lyrics:
+            for profane_word in profanity_list:
+                 if profane_word in word:
+                    num_profane_words += 1
+        return num_profane_words
+    except requests.exceptions.RequestException as e:
+        return f"An error occurred: {e}"
+
+
+
 def main():
+    print("Code Running...")
+    #Zack (Bullet Train) - Profanity
+    song_name = "Lose Yourself"
+    artist = "Eminem"
+    profanity = ['bitch', 'fuck', "fuckin'", "shit", "motherfuckin'", "ass", "pussy"]
+    print(artist+ " - " +song_name)
+    print ("Number of profane words: " +str((name_to_lyrics(artist, song_name, profanity))))
+
+
+
+    #Nathaniel - Release Dates
     songs = read_songs_from_file("songs.txt") 
     conn = setup_database()
     for song in songs:
