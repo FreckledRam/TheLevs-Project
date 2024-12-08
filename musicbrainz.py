@@ -66,52 +66,67 @@ def read_songs_from_file(file_path):
                 songs.append({"artist_name": artist_name, "song_title": song_title})
     return songs
 
-#Zack - AZLyrics.com / Profanity
+#ZACK - Profanity Counter
 def song_profanity(artist, song, profanity_list):
-    url = f"https://www.azlyrics.com/lyrics/{artist.lower().replace(" ", "-")}/{song.lower().replace(" ", "")}.html"
+    url = f"https://www.azlyrics.com/lyrics/{artist.lower().replace(' ', '-')}/{song.lower().replace(' ', '')}.html"
 
     try:
         response = requests.get(url)
+
         soup = BeautifulSoup(response.text, 'html.parser')
 
-        lyrics_div = soup.find("b", string=f'"{song}"').find_next("div")
+        song_tag = soup.find("b", string=f'"{song}"')
+        if song_tag is None:
+            return "Error"
+
+        lyrics_div = song_tag.find_next("div")
+        if lyrics_div is None:
+            return "Error"
 
         lyrics = lyrics_div.get_text().strip()
-        
         words_in_lyrics = re.findall(r'\b\w+\b', lyrics.lower())
 
-        num_profane_words = 0
-        for word in words_in_lyrics:
-            for profane_word in profanity_list:
-                 if profane_word in word:
-                    num_profane_words += 1
-        return num_profane_words
-    except (requests.exceptions.RequestException, ValueError) as e:
+        num_profane_words = sum(1 for word in words_in_lyrics for profane_word in profanity_list if profane_word in word)
+
+        return f"{song} - {num_profane_words} profane words"
+
+    except requests.exceptions.RequestException as e :
         return "Error"
-    
+
+
 def song_list_profanity(file_path, profanity_list):
-    profanity_list = []
     song_list = read_songs_from_file(file_path)
+    results = []
+
     for song in song_list:
         time.sleep(random.uniform(1, 5))
+
         indv_prof = song_profanity(song["artist_name"], song["song_title"], profanity_list)
-        profanity_list.append(indv_prof)
-    return profanity_list
-        
-        
+        results.append(indv_prof)
+
+    return results
 
 
+def read_songs_from_file(file_path):
+    with open(file_path, "r") as file:
+        songs = []
+        for line in file:
+            artist, song = line.strip().split(" - ")
+            songs.append({"artist_name": artist, "song_title": song})
+        return songs
 
 
 def main():
     print("Code Running...")
     profanity_list = ['bitch', 'fuck', "fuckin'", "shit", "motherfuckin'", "ass", "pussy"]
-    #Zack (Bullet Train) - Profanity
+    file_path = "songs.txt"
+
     print("Zack - Profanity Counter")
     print("########################")
-    print(song_list_profanity(("songs.txt"), profanity_list))
+    results = song_list_profanity(file_path, profanity_list)
+    for result in results:
+        print(result)
     print("\n")
-
 
     '''
     #Nathaniel - Release Dates
