@@ -1,7 +1,9 @@
 import sqlite3
 import requests
 import re
+import random
 import time
+
 from datetime import datetime
 from bs4 import BeautifulSoup
 
@@ -65,7 +67,7 @@ def read_songs_from_file(file_path):
     return songs
 
 #Zack - AZLyrics.com / Profanity
-def name_to_lyrics(artist, song, profanity_list):
+def song_profanity(artist, song, profanity_list):
     url = f"https://www.azlyrics.com/lyrics/{artist.lower().replace(" ", "-")}/{song.lower().replace(" ", "")}.html"
 
     try:
@@ -84,22 +86,34 @@ def name_to_lyrics(artist, song, profanity_list):
                  if profane_word in word:
                     num_profane_words += 1
         return num_profane_words
-    except requests.exceptions.RequestException as e:
-        return f"An error occurred: {e}"
+    except (requests.exceptions.RequestException, ValueError) as e:
+        return "Error"
+    
+def song_list_profanity(file_path, profanity_list):
+    profanity_list = []
+    song_list = read_songs_from_file(file_path)
+    for song in song_list:
+        time.sleep(random.uniform(1, 5))
+        indv_prof = song_profanity(song["artist_name"], song["song_title"], profanity_list)
+        profanity_list.append(indv_prof)
+    return profanity_list
+        
+        
+
 
 
 
 def main():
     print("Code Running...")
+    profanity_list = ['bitch', 'fuck', "fuckin'", "shit", "motherfuckin'", "ass", "pussy"]
     #Zack (Bullet Train) - Profanity
-    song_name = "Lose Yourself"
-    artist = "Eminem"
-    profanity = ['bitch', 'fuck', "fuckin'", "shit", "motherfuckin'", "ass", "pussy"]
-    print(artist+ " - " +song_name)
-    print ("Number of profane words: " +str((name_to_lyrics(artist, song_name, profanity))))
+    print("Zack - Profanity Counter")
+    print("########################")
+    print(song_list_profanity(("songs.txt"), profanity_list))
+    print("\n")
 
 
-
+    '''
     #Nathaniel - Release Dates
     songs = read_songs_from_file("songs.txt") 
     conn = setup_database()
@@ -112,6 +126,7 @@ def main():
         insert_into_database(conn, artist_name, song_title, release_year)
         time.sleep(1)  #musicbrainz rate limits
     conn.close()
+    '''
     print("Done")
 
 if __name__ == "__main__":
