@@ -68,10 +68,14 @@ def read_songs_from_file(file_path):
 
 #ZACK - Profanity Counter
 def song_profanity(artist, song, profanity_list):
-    url = f"https://www.azlyrics.com/lyrics/{artist.lower().replace(' ', '-')}/{song.lower().replace(' ', '')}.html"
+    artist_stripped = re.sub(r'[^\w]', '', artist).lower()
+    print(artist_stripped)
+    song_stripped = re.sub(r'[^\w]', '', song).lower()
+    print(song_stripped)
+    url = f"https://www.azlyrics.com/lyrics/{artist_stripped}/{song_stripped}.html"
 
     try:
-        response = requests.get(url)
+        response = requests.get(url, timeout=10)
 
         soup = BeautifulSoup(response.text, 'html.parser')
 
@@ -86,9 +90,13 @@ def song_profanity(artist, song, profanity_list):
         lyrics = lyrics_div.get_text().strip()
         words_in_lyrics = re.findall(r'\b\w+\b', lyrics.lower())
 
-        num_profane_words = sum(1 for word in words_in_lyrics for profane_word in profanity_list if profane_word in word)
+        num_profane_words = 0
+        for word in words_in_lyrics:
+            for profane_word in profanity_list:
+                if profane_word in word:
+                    num_profane_words += 1
 
-        return f"{song} - {num_profane_words} profane words"
+        return f"{song} - {num_profane_words}"
 
     except requests.exceptions.RequestException as e :
         return "Error"
@@ -107,32 +115,24 @@ def song_list_profanity(file_path, profanity_list):
     return results
 
 
-def read_songs_from_file(file_path):
-    with open(file_path, "r") as file:
-        songs = []
-        for line in file:
-            artist, song = line.strip().split(" - ")
-            songs.append({"artist_name": artist, "song_title": song})
-        return songs
-
 
 def main():
     print("Code Running...")
     profanity_list = ['bitch', 'fuck', "fuckin'", "shit", "motherfuckin'", "ass", "pussy"]
-    file_path = "songs.txt"
+    file_path = "songs_smaller.txt"
 
     print("Zack - Profanity Counter")
     print("########################")
+
     results = song_list_profanity(file_path, profanity_list)
-    for result in results:
-        print(result)
+    print(results)
     print("\n")
 
     '''
     #Nathaniel - Release Dates
     songs = read_songs_from_file("songs.txt") 
     conn = setup_database()
-    for song in songs:
+    for song in songs:ch
         artist_name = song["artist_name"]
         song_title = song["song_title"]
         print(f"Fetching data for {artist_name} - {song_title}...")
@@ -142,7 +142,6 @@ def main():
         time.sleep(1)  #musicbrainz rate limits
     conn.close()
     '''
-    print("Done")
 
 if __name__ == "__main__":
     main()
