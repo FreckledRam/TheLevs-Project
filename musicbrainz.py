@@ -66,7 +66,7 @@ def read_songs_from_file(file_path):
                 songs.append({"artist_name": artist_name, "song_title": song_title})
     return songs
 
-#ZACK - Profanity Counter
+#ZACK - Profanity Counter ####################################################################################################################
 def song_profanity(artist, song, profanity_list):
     artist_stripped = re.sub(r'[^\w]', '', artist).lower()
     #print(artist_stripped)
@@ -81,7 +81,9 @@ def song_profanity(artist, song, profanity_list):
 
     song_tag = soup.find("b", string=f'"{song}"')
     if song_tag is None:
-        return "Error"
+        song_tag = soup.find("b", string=f'"{song.lower()}"')
+        if song_tag is None:
+            return "Error"
 
     lyrics_div = song_tag.find_next("div")
     if lyrics_div is None:
