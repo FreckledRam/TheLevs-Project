@@ -107,8 +107,10 @@ def song_profanity(artist, song, profanity_list):
         for profane_word in profanity_list:
             if profane_word in word:
                 num_profane_words += 1
-
-    return f"{song} - {num_profane_words}"
+    output_dict = {}
+    output_dict[song] = num_profane_words
+    
+    return output_dict
 
 
 def song_list_profanity(file_path, profanity_list):
