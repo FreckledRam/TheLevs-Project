@@ -126,6 +126,8 @@ def song_list_profanity(file_path, profanity_list):
 
     return results
 
+#Chart production - ##################################################################################################
+
 
 
 def main():
