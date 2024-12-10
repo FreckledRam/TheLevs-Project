@@ -8,6 +8,7 @@ import time
 from datetime import datetime
 from bs4 import BeautifulSoup
 
+#NATHANIEL - RELEASE DATE
 def setup_database():
     conn = sqlite3.connect("songs.db")
     cursor = conn.cursor()
@@ -39,6 +40,7 @@ def fetch_song_data(artist_name, song_title):
         "fmt": "json"
     }
     headers = {"User-Agent": "MusicDataCollector/1.0 (user@example.com)"}
+    time.sleep(random.uniform(1, 10))
     response = requests.get(base_url, params=params, headers=headers)
     if response.status_code == 200:
         data = response.json()
@@ -107,10 +109,8 @@ def song_profanity(artist, song, profanity_list):
         for profane_word in profanity_list:
             if profane_word in word:
                 num_profane_words += 1
-    output_dict = {}
-    output_dict[song] = num_profane_words
     
-    return output_dict
+    return num_profane_words
 
 
 def song_list_profanity(file_path, profanity_list):
@@ -128,24 +128,40 @@ def song_list_profanity(file_path, profanity_list):
 
 #Chart production - ##################################################################################################
 
+def release_date_to_profanity(txt_file, profanity_list):
+    #Nathaniel - Release DATE
+    songs = read_songs_from_file("songs.txt") 
+    conn = setup_database()
+    song_dictionary = {}
+    for song in songs:
 
+        artist_name = song["artist_name"]
+        song_title = song["song_title"]
+        release_year = str(fetch_song_data(artist_name, song_title))
+        
+        num_song_profanity = song_profanity(artist_name, song_title, profanity_list)
+
+        inner_list = [song_title, num_song_profanity]
+        if release_year not in song_dictionary:
+            song_dictionary[release_year] = []
+        song_dictionary[release_year].append(inner_list)
+        print(song_dictionary[release_year])
+    new_dict = {int(k): v for k, v in song_dictionary.items()}
+    for key in sorted(new_dict):
+        print(key, new_dict[key])
+    conn.close()
 
 def main():
     print("Code Running...")
+    #Release Date x Profanity Chart
     profanity_list = ['bitch', 'fuck', "fuckin'", "shit", "motherfuckin'", "ass", "pussy", "damn", "crap", "hoe", "asshole", "bastard", "bullshit", "dick", "fucking", "motherfucking", "motherfucker", "fucker", "cock"]
-    file_path = "songs.txt"
-
-    print("Zack - Profanity Counter")
-    print("########################")
-
-    song_list_profanity(file_path, profanity_list)
-   
+    release_date_to_profanity("songs.txt", profanity_list)
 
     '''
-    #Nathaniel - Release Dates
+    #Nathaniel - Release DATE
     songs = read_songs_from_file("songs.txt") 
     conn = setup_database()
-    for song in songs:ch
+    for song in songs:
         artist_name = song["artist_name"]
         song_title = song["song_title"]
         print(f"Fetching data for {artist_name} - {song_title}...")
@@ -154,7 +170,19 @@ def main():
         insert_into_database(conn, artist_name, song_title, release_year)
         time.sleep(1)  #musicbrainz rate limits
     conn.close()
+
+    #ZACK - PROFANITY
+    profanity_list = ['bitch', 'fuck', "fuckin'", "shit", "motherfuckin'", "ass", "pussy", "damn", "crap", "hoe", "asshole", "bastard", "bullshit", "dick", "fucking", "motherfucking", "motherfucker", "fucker", "cock"]
+    file_path = "songs.txt"
+
+    print("Zack - Profanity Counter")
+    print("########################")
+
+    song_list_profanity(file_path, profanity_list)
     '''
+   
+
+    
 
 if __name__ == "__main__":
     main()
