@@ -2,6 +2,7 @@ import sqlite3
 import requests
 import re
 import random
+import unicodedata
 import time
 
 from datetime import datetime
@@ -68,11 +69,18 @@ def read_songs_from_file(file_path):
 
 #ZACK - Profanity Counter ####################################################################################################################
 def song_profanity(artist, song, profanity_list):
-    artist_stripped = re.sub(r'[^\w]', '', artist).lower()
+    artist_switched = re.sub(r'\bthe\b', '', re.sub(r'\$', 's', artist)).lower()
+    artist_stripped = re.sub(r'[^\w]', '', artist_switched).lower()
+    artist_str = unicodedata.normalize('NFKD', artist_stripped)
+    artist_str = artist_str.encode('ascii', 'ignore').decode('ascii')
+    if artist_str[:3] == 'the':
+        artist_str = artist_str[3:]
     #print(artist_stripped)
     song_stripped = re.sub(r'[^\w]', '', song).lower()
+    song_str = unicodedata.normalize('NFKD', song_stripped)
+    song_str = song_str.encode('ascii', 'ignore').decode('ascii')
     #print(song_stripped)
-    url = f"https://www.azlyrics.com/lyrics/{artist_stripped}/{song_stripped}.html"
+    url = f"https://www.azlyrics.com/lyrics/{artist_str}/{song_str}.html"
 
 
     response = requests.get(url)
@@ -83,11 +91,13 @@ def song_profanity(artist, song, profanity_list):
     if song_tag is None:
         song_tag = soup.find("b", string=f'"{song.lower()}"')
         if song_tag is None:
-            return "Error"
+            song_tag = soup.find("b", string=f'"{song.upper()}"')
+            if song_tag is None:
+                return f'Error [song tag] - {artist}, {song} - {url}'
 
     lyrics_div = song_tag.find_next("div")
     if lyrics_div is None:
-        return "Error"
+        return f'Error [lyrics div] - {artist}, {song}'
 
     lyrics = lyrics_div.get_text().strip()
     words_in_lyrics = re.findall(r'\b\w+\b', lyrics.lower())
@@ -106,7 +116,7 @@ def song_list_profanity(file_path, profanity_list):
     results = []
 
     for song in song_list:
-        time.sleep(random.uniform(1, 5))
+        time.sleep(random.uniform(1, 10))
 
         indv_prof = song_profanity(song["artist_name"], song["song_title"], profanity_list)
         print(indv_prof)
@@ -118,14 +128,14 @@ def song_list_profanity(file_path, profanity_list):
 
 def main():
     print("Code Running...")
-    profanity_list = ['bitch', 'fuck', "fuckin'", "shit", "motherfuckin'", "ass", "pussy"]
+    profanity_list = ['bitch', 'fuck', "fuckin'", "shit", "motherfuckin'", "ass", "pussy", "damn", "crap", "hoe", "asshole", "bastard", "bullshit", "dick", "fucking", "motherfucking", "motherfucker", "fucker", "cock"]
     file_path = "songs.txt"
 
     print("Zack - Profanity Counter")
     print("########################")
 
     song_list_profanity(file_path, profanity_list)
-    
+   
 
     '''
     #Nathaniel - Release Dates
