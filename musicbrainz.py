@@ -4,11 +4,12 @@ import re
 import random
 import unicodedata
 import time
+import matplotlib.pyplot as plt
 
 from datetime import datetime
 from bs4 import BeautifulSoup
 
-#NATHANIEL - RELEASE DATE
+#NATHANIEL - RELEASE DATE ###################################################################################################################
 def setup_database():
     conn = sqlite3.connect("songs.db")
     cursor = conn.cursor()
@@ -23,7 +24,6 @@ def setup_database():
     conn.commit()
     return conn
 
-#standardize to year only
 def process_release_date(date_str):
     try:
         return datetime.strptime(date_str, "%Y-%m-%d").year
@@ -45,7 +45,6 @@ def fetch_song_data(artist_name, song_title):
     if response.status_code == 200:
         data = response.json()
         if "recordings" in data and data["recordings"]:
-            #sort by first release date (handles multiple recordings)
             sorted_recordings = sorted(data["recordings"], key=lambda x: x.get("first-release-date", "9999-99-99"))
             first_recording = sorted_recordings[0]
             release_date = first_recording.get("first-release-date", "Unknown")
@@ -130,7 +129,7 @@ def song_list_profanity(file_path, profanity_list):
 
 def release_date_to_profanity(txt_file, profanity_list):
     #Nathaniel - Release DATE
-    songs = read_songs_from_file("songs.txt") 
+    songs = read_songs_from_file(txt_file) 
     conn = setup_database()
     song_dictionary = {}
     for song in songs:
@@ -146,20 +145,70 @@ def release_date_to_profanity(txt_file, profanity_list):
             song_dictionary[release_year] = []
         song_dictionary[release_year].append(inner_list)
         print(song_dictionary[release_year])
-    new_dict = {int(k): v for k, v in song_dictionary.items()}
-    for key in sorted(new_dict):
-        print(key, new_dict[key])
+    profanity_average = {}
+    for year in song_dictionary:
+        total = 0 
+        for song in song_dictionary[year]:
+            total += song[1]
+        average = total / len(song_dictionary[year])
+        profanity_average[year] = average
+        print(profanity_average[year])
+    
+    print(profanity_average)
+    '''
     conn.close()
+
+    #CHART
+
+    sorted_keys = sorted(profanity_average.keys(), key=lambda k: int(k))
+
+    # Rebuild the dictionary with sorted keys
+    sorted_data = {k: profanity_average[k] for k in sorted_keys}
+
+    x_labels = []
+    y_values = []
+    colors = []
+
+    cmap = plt.get_cmap('tab10') 
+    year_to_color = {}
+
+    for i, year in enumerate(sorted_data):
+        year_to_color[year] = cmap(i % 10)
+
+    # Instead of iterating over each song, just use the average per year
+    for year in sorted_data:
+        x_labels.append(year)
+        y_values.append(profanity_average[year])
+        colors.append(year_to_color[year])
+
+    x_positions = range(len(x_labels))
+
+    plt.bar(x_positions, y_values, color=colors)
+
+    plt.xticks(x_positions, x_labels, rotation=90)
+    plt.xlabel('Year')
+    plt.ylabel('Average Profanity Count')
+    plt.title('Average Profanity in Songs by Year')
+
+    plt.tight_layout()
+    plt.show()
+    '''
 
 def main():
     print("Code Running...")
     #Release Date x Profanity Chart
     profanity_list = ['bitch', 'fuck', "fuckin'", "shit", "motherfuckin'", "ass", "pussy", "damn", "crap", "hoe", "asshole", "bastard", "bullshit", "dick", "fucking", "motherfucking", "motherfucker", "fucker", "cock"]
-    release_date_to_profanity("songs.txt", profanity_list)
+    release_date_to_profanity("year_x_profanity.txt", profanity_list)
 
-    '''
+   
+
+
+    # Rebuild the dictionary with sorted keys
+    #sorted_keys = sorted(dict.keys(), key=lambda k: int(k)) 
+    #print(sorted_keys)
+
     #Nathaniel - Release DATE
-    songs = read_songs_from_file("songs.txt") 
+    songs = read_songs_from_file("year_x_profanity.txt") 
     conn = setup_database()
     for song in songs:
         artist_name = song["artist_name"]
@@ -171,15 +220,7 @@ def main():
         time.sleep(1)  #musicbrainz rate limits
     conn.close()
 
-    #ZACK - PROFANITY
-    profanity_list = ['bitch', 'fuck', "fuckin'", "shit", "motherfuckin'", "ass", "pussy", "damn", "crap", "hoe", "asshole", "bastard", "bullshit", "dick", "fucking", "motherfucking", "motherfucker", "fucker", "cock"]
-    file_path = "songs.txt"
 
-    print("Zack - Profanity Counter")
-    print("########################")
-
-    song_list_profanity(file_path, profanity_list)
-    '''
    
 
     
