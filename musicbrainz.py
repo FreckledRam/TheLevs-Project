@@ -155,7 +155,7 @@ def release_date_to_profanity(txt_file, profanity_list):
         print(profanity_average[year])
     
     print(profanity_average)
-    '''
+    
     conn.close()
 
     #CHART
@@ -192,7 +192,7 @@ def release_date_to_profanity(txt_file, profanity_list):
 
     plt.tight_layout()
     plt.show()
-    '''
+
 
 def main():
     print("Code Running...")
@@ -200,7 +200,6 @@ def main():
     profanity_list = ['bitch', 'fuck', "fuckin'", "shit", "motherfuckin'", "ass", "pussy", "damn", "crap", "hoe", "asshole", "bastard", "bullshit", "dick", "fucking", "motherfucking", "motherfucker", "fucker", "cock"]
     release_date_to_profanity("year_x_profanity.txt", profanity_list)
 
-   
 
 
     # Rebuild the dictionary with sorted keys
