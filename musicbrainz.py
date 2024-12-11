@@ -144,7 +144,10 @@ def release_date_to_profanity(txt_file, profanity_list):
         if release_year not in song_dictionary:
             song_dictionary[release_year] = []
         song_dictionary[release_year].append(inner_list)
+        
         print(song_dictionary[release_year])
+
+    ################## DATA CALCULATION/CHART FOR PROFANITY X RELEASE YEAR #####################
     profanity_average = {}
     for year in song_dictionary:
         total = 0 
@@ -153,6 +156,7 @@ def release_date_to_profanity(txt_file, profanity_list):
         average = total / len(song_dictionary[year])
         profanity_average[year] = average
         print(profanity_average[year])
+        
     
     print(profanity_average)
     
